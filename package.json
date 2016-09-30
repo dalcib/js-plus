@@ -1,6 +1,6 @@
 {
   "name": "js-plus",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "description": "Javascript utilities",
   "main": "js-plus.js",
   "scripts": {
