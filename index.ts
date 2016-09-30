@@ -106,7 +106,7 @@ if (!Array.prototype.count) {
   };
 }
 
-function typeArg(arg, arr) {
+function typeArg(arg: any, arr: any[]): any[] {
   let that;
   switch (typeof arg) {
     case 'function':
@@ -162,7 +162,7 @@ if (!Array.prototype.unique) {
   };
 }
 
-function flatten(list: Array<any>, depth?: number, mapperFn?: Function, mapperCtx?: any) {
+function flatten(list: Array<any>, depth?: number, mapperFn?: Function, mapperCtx?: any): any {
   if (depth === 0) {
     return list;
   }
@@ -399,4 +399,29 @@ if (!Object.isFunction) {
   Object.isFunction = function(obj) { // tslint:disable-line: typedef
     return typeof obj === 'function' || false;
   };
+}
+
+if (!Array.isArray) {
+  Array.isArray = function(arg: any): arg is any[] { // tslint:disable-line: typedef
+    return Object.prototype.toString.call(arg) === '[object Array]';
+  };
+}
+
+if (!Number.isFinite) {
+  Number.isFinite = Number.isFinite || function(value) {
+      return typeof value === 'number' && isFinite(value);
+  }
+}
+
+if (!Number.isInteger) {
+  Number.isInteger = Number.isInteger || function(value) {
+    return typeof value === 'number' &&
+      isFinite(value) &&
+      Math.floor(value) === value;
+  };
+}
+
+interface NumberConstructor {
+    isFinite(value: any): boolean;
+    isInteger(value: any): boolean;
 }
