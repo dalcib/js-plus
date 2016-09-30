@@ -354,67 +354,67 @@ if (typeof Object.assign !== 'function') {
 }
 
 if (!Object.isString) {
-  Object.isString = function isString(value) { // tslint:disable-line: typedef
+  Object.isString = function isString(value: any): boolean {
     return (typeof value === 'string' || value instanceof String);
   };
 }
 
 if (!Object.isNumber) {
-  Object.isNumber = function isNumber(value) { // tslint:disable-line: typedef
+  Object.isNumber = function isNumber(value: any): boolean {
     return (typeof value === 'number' || value instanceof Number);
   };
 }
 
 if (!Object.isBoolean) {
-  Object.isBoolean = function isBoolean(value) { // tslint:disable-line: typedef
+  Object.isBoolean = function isBoolean(value: any): boolean {
     return (typeof value === 'boolean' || value instanceof Boolean);
   };
 }
 
 if (!Object.isObject) {
-  Object.isObject = function(arg){ // tslint:disable-line: typedef
+  Object.isObject = function(arg: any): boolean {
     return Object.prototype.toString.call(arg) === '[object Object]';
   };
 }
 
 if (!Object.isArray) {
-  Object.isArray = function(arg){ // tslint:disable-line: typedef
+  Object.isArray = function(arg: any): boolean {
     return Object.prototype.toString.call(arg) === '[object Array]';
   };
 }
 
 if (!Object.isNull) {
-  Object.isNull = function(obj) { // tslint:disable-line: typedef
+  Object.isNull = function(obj: any): boolean {
     return obj === null;
   };
 }
 
 if (!Object.isUndefined) {
-  Object.isUndefined = function(obj) { // tslint:disable-line: typedef
+  Object.isUndefined = function(obj: any): boolean {
     return obj === void 0;
   };
 }
 
 if (!Object.isFunction) {
-  Object.isFunction = function(obj) { // tslint:disable-line: typedef
+  Object.isFunction = function(obj: any): boolean {
     return typeof obj === 'function' || false;
   };
 }
 
 if (!Array.isArray) {
-  Array.isArray = function(arg: any): arg is any[] { // tslint:disable-line: typedef
+  Array.isArray = function(arg: any): arg is any[] {
     return Object.prototype.toString.call(arg) === '[object Array]';
   };
 }
 
 if (!Number.isFinite) {
-  Number.isFinite = Number.isFinite || function(value) {
+  Number.isFinite = Number.isFinite || function(value: any): boolean {
       return typeof value === 'number' && isFinite(value);
-  }
+  };
 }
 
 if (!Number.isInteger) {
-  Number.isInteger = Number.isInteger || function(value) {
+  Number.isInteger = Number.isInteger || function(value: any): boolean {
     return typeof value === 'number' &&
       isFinite(value) &&
       Math.floor(value) === value;
