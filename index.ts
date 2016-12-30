@@ -104,6 +104,18 @@ if (!Array.prototype.count) {
   Array.prototype.count = function() { // tslint:disable-line: typedef
     return this.length;
   };
+  
+  /*Array.prototype.count = function (predicate) {
+    if (Object.isObject(this[0]) && Object.isObject(this[this.length-1])) {
+        return {count: this.length}
+    }
+    return this.reduce( (total, item) => {
+        let propertie = predicate ? item[predicate] : item
+        total[propertie] = (total[propertie] || 0) + 1
+        return total
+    }, {})
+  }*/
+  
 }
 
 function typeArg(arg: any, arr: any[]): any[] {
