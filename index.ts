@@ -1,5 +1,7 @@
 /* tslint:disable:no-bitwise */
 
+type map<M> = ((value: M, index?: number, array?: M[]) => Array<any>)
+
 interface Array<T> {
   groupBy(prop: string, fields?: string | Function | any): T[]
   /*| ((value: T, index: number, array: T[]) => Array<any>)*/
@@ -7,30 +9,16 @@ interface Array<T> {
   first(): T
   last(): T
   count(field?: (value: T, index: number, array: T[]) => Array<any>): number
-  min(
-    field?: string | ((value: T, index: number, array: T[]) => Array<any>)
-  ): number
-  max(
-    field?: string | ((value: T, index: number, array: T[]) => Array<any>)
-  ): number
-  sum(
-    field?: string | ((value: T, index: number, array: T[]) => Array<any>)
-  ): number
-  average(
-    field?: string | ((value: T, index: number, array: T[]) => Array<any>)
-  ): number
-  unique(
-    field?:
-      | string
-      | ((value: T, index: number, array: T[]) => Array<any>)
-      | string
-  ): string[] | T[]
-  by(
-    field?: string | ((value: T, index: number, array: T[]) => Array<any>)
-  ): T[]
+  min(field?: string | map<T>): number
+  max(field?: string | map<T>): number
+  sum(field?: string | map<T>): number
+  average(field?: string | map<T>): number
+  unique(): T[]
+  unique(field?: string | map<T>): string[]
+  by(field?: string | map<T>): any[]
   flatten(depth?: number): T[]
   flatMap<U>(
-    callbackfn: (value: T, index: number, array: T[]) => U,
+    callbackfn: (value: T, index?: number, array?: T[]) => U,
     thisArg?: any
   ): U[]
   take(numberOf?: number): T[]
@@ -180,9 +168,11 @@ if (!Array.prototype.max) {
 }
 
 if (!Array.prototype.sum) {
-  Array.prototype.sum = function(field) {
-    // tslint:disable-line: typedef
-    return this.by(field).reduce((prev, current) => +current + prev, 0) // parseFloat
+  Array.prototype.sum = function(field: any) {
+    return this.by(field).reduce(
+      (prev: number, current: number) => +current + prev,
+      0
+    ) // parseFloat
   }
 }
 
@@ -197,8 +187,7 @@ if (!Array.prototype.average) {
 }
 
 if (!Array.prototype.unique) {
-  Array.prototype.unique = function(field) {
-    // tslint:disable-line: typedef
+  Array.prototype.unique = function(field?: any) {
     let that = typeArg(field, this)
     let o: any = {}
     let i
