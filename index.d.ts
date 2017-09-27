@@ -19,7 +19,7 @@ interface Array<T> {
     fill(value: T, start?: number, end?: number): T[];
 }
 declare function typeArg(arg: any, arr: any[]): any[];
-declare function flatten(list: Array<any>, depth?: number, mapperFn?: Function, mapperCtx?: any): any;
+declare function flatten(list: Array<any>, depth: number, mapperFn?: Function, mapperCtx?: any): any;
 interface ObjectConstructor {
     assign(target: any, ...sources: any[]): any;
     isString(value: any): boolean;

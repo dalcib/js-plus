@@ -1,9 +1,11 @@
+"use strict";
 /* tslint:disable:no-bitwise */
 if (!Array.prototype.groupBy) {
     Array.prototype.groupBy = function (prop, fields) {
         var key;
         var result = this.reduce(function (grouped, item) {
-            key = item[prop];
+            key =
+                /*(typeof prop === 'function') ? prop.apply(this, [item]) :*/ item[prop];
             grouped[key] = grouped[key] || [];
             var obj;
             switch (typeof fields) {
@@ -16,7 +18,10 @@ if (!Array.prototype.groupBy) {
                     break;
                 case 'object':
                     if (Array.isArray(fields)) {
-                        obj = fields.reduce(function (prev, curr) { prev[curr] = item[curr]; return prev; }, {});
+                        obj = fields.reduce(function (prev, curr) {
+                            prev[curr] = item[curr];
+                            return prev;
+                        }, {});
                     }
                     break;
                 default:
@@ -30,7 +35,7 @@ if (!Array.prototype.groupBy) {
         Object.keys(result).forEach(function (row) {
             // console.log(row)
             var item = {};
-            var cat = (typeof prop === 'function') ? 'key' : prop;
+            var cat = typeof prop === 'function' ? 'key' : prop;
             item[cat] = row;
             item.group = result[row];
             ret.push(item);
@@ -40,6 +45,7 @@ if (!Array.prototype.groupBy) {
 }
 if (!Array.prototype.aggregate) {
     Array.prototype.aggregate = function (querys) {
+        // tslint:disable-line: typedef
         return this.map(function (row) {
             Object.keys(querys).forEach(function (query) {
                 var func = querys[query];
@@ -63,18 +69,31 @@ if (!Array.prototype.aggregate) {
 }
 if (!Array.prototype.first) {
     Array.prototype.first = function () {
+        // tslint:disable-line: typedef
         return this[0];
     };
 }
 if (!Array.prototype.last) {
     Array.prototype.last = function () {
+        // tslint:disable-line: typedef
         return this[this.length - 1];
     };
 }
 if (!Array.prototype.count) {
     Array.prototype.count = function () {
+        // tslint:disable-line: typedef
         return this.length;
     };
+    /*Array.prototype.count = function (predicate) {
+      if (Object.isObject(this[0]) && Object.isObject(this[this.length-1])) {
+          return {count: this.length}
+      }
+      return this.reduce( (total, item) => {
+          let propertie = predicate ? item[predicate] : item
+          total[propertie] = (total[propertie] || 0) + 1
+          return total
+      }, {})
+    }*/
 }
 function typeArg(arg, arr) {
     var that;
@@ -93,29 +112,34 @@ function typeArg(arg, arr) {
 }
 if (!Array.prototype.min) {
     Array.prototype.min = function (field) {
+        // tslint:disable-line: typedef
         return Math.min.apply(null, this.by(field));
     };
 }
 if (!Array.prototype.max) {
     Array.prototype.max = function (field) {
+        // tslint:disable-line: typedef
         return Math.max.apply(null, this.by(field));
     };
 }
 if (!Array.prototype.sum) {
     Array.prototype.sum = function (field) {
-        return this.by(field).reduce(function (prev, current) { return (+(current) + prev); }, 0); // parseFloat
+        // tslint:disable-line: typedef
+        return this.by(field).reduce(function (prev, current) { return +current + prev; }, 0); // parseFloat
     };
 }
 if (!Array.prototype.average) {
     Array.prototype.average = function (field) {
+        // tslint:disable-line: typedef
         var that = typeArg(field, this);
         var count = that.length;
-        var total = that.reduce(function (prev, current) { return (+(current) + prev); }, 0); // parseFloat
+        var total = that.reduce(function (prev, current) { return +current + prev; }, 0); // parseFloat
         return total / count;
     };
 }
 if (!Array.prototype.unique) {
     Array.prototype.unique = function (field) {
+        // tslint:disable-line: typedef
         var that = typeArg(field, this);
         var o = {};
         var i;
@@ -124,7 +148,9 @@ if (!Array.prototype.unique) {
         for (i = 0; i < l; i += 1) {
             o[JSON.stringify(that[i])] = that[i];
         }
-        Object.keys(o).forEach(function (i) { r.push(o[i]); });
+        Object.keys(o).forEach(function (i) {
+            r.push(o[i]);
+        });
         return r;
     };
 }
@@ -145,25 +171,28 @@ function flatten(list, depth, mapperFn, mapperCtx) {
         return accumulator;
     }, []);
 }
-;
 if (!Array.prototype.flatten) {
     Array.prototype.flatten = function (depth) {
         if (depth === void 0) { depth = Infinity; }
+        // tslint:disable-line: typedef
         return flatten(this, depth);
     };
 }
 if (!Array.prototype.flatMap) {
     Array.prototype.flatMap = function (fn, ctx) {
+        // tslint:disable-line: typedef
         return flatten(this, 1, fn, ctx);
     };
 }
 if (!Array.prototype.by) {
     Array.prototype.by = function (field) {
+        // tslint:disable-line: typedef
         return typeArg(field, this);
     };
 }
 if (!Array.prototype.take) {
     Array.prototype.take = function (numberOf) {
+        // tslint:disable-line: typedef
         var begin;
         var end;
         if (numberOf >= 0) {
@@ -179,6 +208,7 @@ if (!Array.prototype.take) {
 }
 if (!Array.prototype.includes) {
     Array.prototype.includes = function (searchElement /*, fromIndex*/) {
+        // tslint:disable-line: typedef
         'use strict';
         var O = Object(this);
         var len = parseInt(O.length, 10) || 0;
@@ -201,6 +231,7 @@ if (!Array.prototype.includes) {
             currentElement = O[k];
             if (searchElement === currentElement ||
                 (searchElement !== searchElement && currentElement !== currentElement)) {
+                // .. NaN !== NaN
                 return true;
             }
             k++;
@@ -210,6 +241,7 @@ if (!Array.prototype.includes) {
 }
 if (!Array.prototype.find) {
     Array.prototype.find = function (predicate) {
+        // tslint:disable-line: typedef
         if (this === null) {
             throw new TypeError('Array.prototype.find called on null or undefined');
         }
@@ -231,6 +263,7 @@ if (!Array.prototype.find) {
 }
 if (!Array.prototype.findIndex) {
     Array.prototype.findIndex = function (predicate) {
+        // tslint:disable-line: typedef
         if (this === null) {
             throw new TypeError('Array.prototype.findIndex called on null or undefined');
         }
@@ -252,6 +285,7 @@ if (!Array.prototype.findIndex) {
 }
 if (!Array.prototype.fill) {
     Array.prototype.fill = function (value) {
+        // tslint:disable-line: typedef
         if (this == null) {
             throw new TypeError('this is null or not defined');
         }
@@ -259,15 +293,14 @@ if (!Array.prototype.fill) {
         var len = O.length >>> 0;
         var start = arguments[1];
         var relativeStart = start >> 0;
-        var k = relativeStart < 0 ?
-            Math.max(len + relativeStart, 0) :
-            Math.min(relativeStart, len);
+        var k = relativeStart < 0
+            ? Math.max(len + relativeStart, 0)
+            : Math.min(relativeStart, len);
         var end = arguments[2];
-        var relativeEnd = end === undefined ?
-            len : end >> 0;
-        var final = relativeEnd < 0 ?
-            Math.max(len + relativeEnd, 0) :
-            Math.min(relativeEnd, len);
+        var relativeEnd = end === undefined ? len : end >> 0;
+        var final = relativeEnd < 0
+            ? Math.max(len + relativeEnd, 0)
+            : Math.min(relativeEnd, len);
         while (k < final) {
             O[k] = value;
             k++;
@@ -276,8 +309,10 @@ if (!Array.prototype.fill) {
     };
 }
 if (typeof Object.assign !== 'function') {
+    ;
     (function () {
         Object.assign = function (target) {
+            // tslint:disable-line: typedef
             'use strict';
             if (target === undefined || target === null) {
                 throw new TypeError('Cannot convert undefined or null to object');
@@ -299,17 +334,17 @@ if (typeof Object.assign !== 'function') {
 }
 if (!Object.isString) {
     Object.isString = function isString(value) {
-        return (typeof value === 'string' || value instanceof String);
+        return typeof value === 'string' || value instanceof String;
     };
 }
 if (!Object.isNumber) {
     Object.isNumber = function isNumber(value) {
-        return (typeof value === 'number' || value instanceof Number);
+        return typeof value === 'number' || value instanceof Number;
     };
 }
 if (!Object.isBoolean) {
     Object.isBoolean = function isBoolean(value) {
-        return (typeof value === 'boolean' || value instanceof Boolean);
+        return typeof value === 'boolean' || value instanceof Boolean;
     };
 }
 if (!Object.isObject) {
@@ -343,14 +378,18 @@ if (!Array.isArray) {
     };
 }
 if (!Number.isFinite) {
-    Number.isFinite = Number.isFinite || function (value) {
-        return typeof value === 'number' && isFinite(value);
-    };
+    Number.isFinite =
+        Number.isFinite ||
+            function (value) {
+                return typeof value === 'number' && isFinite(value);
+            };
 }
 if (!Number.isInteger) {
-    Number.isInteger = Number.isInteger || function (value) {
-        return typeof value === 'number' &&
-            isFinite(value) &&
-            Math.floor(value) === value;
-    };
+    Number.isInteger =
+        Number.isInteger ||
+            function (value) {
+                return (typeof value === 'number' &&
+                    isFinite(value) &&
+                    Math.floor(value) === value);
+            };
 }

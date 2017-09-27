@@ -1,9 +1,8 @@
 {
-    "compilerOptions": {
-        "module": "umd",
-        "target": "es3",
-        "noImplicitAny": false,
-        "sourceMap": false,
-        "declaration": true
-    }
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es5",
+    "strict": true,
+    "declaration": true
+  }
 }
