@@ -309,7 +309,7 @@ if (!Array.prototype.includes) {
 }
 
 if (!Array.prototype.find) {
-  Array.prototype.find = function(predicate) {
+  Array.prototype.find = function(predicate: any) {
     // tslint:disable-line: typedef
     if (this === null) {
       throw new TypeError('Array.prototype.find called on null or undefined')
@@ -333,7 +333,7 @@ if (!Array.prototype.find) {
 }
 
 if (!Array.prototype.findIndex) {
-  Array.prototype.findIndex = function(predicate) {
+  Array.prototype.findIndex = function(predicate: any) {
     // tslint:disable-line: typedef
     if (this === null) {
       throw new TypeError(
@@ -359,7 +359,7 @@ if (!Array.prototype.findIndex) {
 }
 
 if (!Array.prototype.fill) {
-  Array.prototype.fill = function(value) {
+  Array.prototype.fill = function(value: any) {
     // tslint:disable-line: typedef
 
     if (this == null) {
