@@ -401,7 +401,7 @@ interface ObjectConstructor {
 
 if (typeof Object.assign !== 'function') {
   ;(function(): void {
-    Object.assign = function(target) {
+    Object.assign = function(target: any) {
       // tslint:disable-line: typedef
       'use strict'
       if (target === undefined || target === null) {
