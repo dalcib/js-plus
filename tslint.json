@@ -7,31 +7,21 @@
    */
   "extends": ["tslint:recommended", "tslint-react"],
   "rules": {
-    "align": [
-      true,
-      "parameters",
-      "arguments",
-      "statements"
-    ],
+    "arrow-parens": false,
+    "only-arrow-functions": false,
     "ban": false,
     "class-name": true,
     "comment-format": [false], //"check-space","check-lowercase"    ],
     "curly": false,
     "eofline": true,
     "forin": true,
-    "indent": [
-      true,
-      2
-    ],
+    "indent": [true, 2],
     "interface-name": [false],
     "jsdoc-format": true,
     "label-position": true,
     "label-undefined": true,
-    "max-line-length": [
-      true,
-      140
-    ],
-    "member-access": false,  // add
+    "max-line-length": [true, 140],
+    "member-access": false, // add
     "member-ordering": [
       true,
       "public-before-private",
@@ -82,19 +72,16 @@
     "quotemark": [
       true,
       "single",
-      "jsx-double"  // add
+      "jsx-double" // add
     ],
     "radix": true,
-    "semicolon": [true],  // false
+    "semicolon": [false],
     "switch-default": true,
-    "triple-equals": [
-      true,
-      "allow-null-check"
-    ],
+    "triple-equals": [true, "allow-null-check"],
     "typedef": [
       true,
-      "call-signature",
-      "parameter",
+      //"call-signature",
+      //"parameter",
       "property-declaration",
       "member-variable-declaration"
     ],
@@ -108,11 +95,7 @@
         "variable-declaration": "nospace"
       }
     ],
-    "use-strict": [
-      false,
-      "check-module",
-      "check-function"
-    ],
+    "use-strict": [false, "check-module", "check-function"],
     "variable-name": false,
     "whitespace": [
       true,
@@ -121,7 +104,7 @@
       "check-operator",
       "check-separator",
       "check-type",
-      "check-typecast"  //add
+      "check-typecast" //add
     ]
   },
   "rulesDirectory": [

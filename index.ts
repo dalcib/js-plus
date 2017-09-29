@@ -1,14 +1,14 @@
 /* tslint:disable:no-bitwise */
 
-type map<M> = ((value: M, index?: number, array?: M[]) => Array<any>)
+type map<M> = ((value: M, index?: number, array?: M[]) => any[])
 
 interface Array<T> {
-  groupBy(prop: string, fields?: string | Function | any): T[]
-  /*| ((value: T, index: number, array: T[]) => Array<any>)*/
+  groupBy(prop: string, fields?: string | (() => void) | any): T[]
+  /*| ((value: T, index: number, array: T[]) => any[])*/
   aggregate(querys: any): T[]
   first(): T
   last(): T
-  count(field?: (value: T, index: number, array: T[]) => Array<any>): number
+  count(field?: (value: T, index: number, array: T[]) => any[]): number
   min(field?: string | map<T>): number
   max(field?: string | map<T>): number
   sum(field?: string | map<T>): number
@@ -24,11 +24,11 @@ interface Array<T> {
   take(numberOf?: number): T[]
   includes(searchElement?: any): boolean
   find(
-    callbackfn: (value: T, index: number, array: Array<T>) => boolean,
+    callbackfn: (value: T, index: number, array: T[]) => boolean,
     thisArg?: any
   ): T
   findIndex(
-    callbackfn: (value: T, index: number, array: Array<T>) => boolean,
+    callbackfn: (value: T, index: number, array: T[]) => boolean,
     thisArg?: any
   ): number
   fill(value: T, start?: number, end?: number): T[]
@@ -37,10 +37,10 @@ interface Array<T> {
 if (!Array.prototype.groupBy) {
   Array.prototype.groupBy = function(
     prop: string,
-    fields?: string | Function | any
+    fields?: string | (() => void) | any
   ): any[] {
     let key
-    let result = this.reduce((grouped: any, item: any) => {
+    const result = this.reduce((grouped: any, item: any) => {
       key =
         /*(typeof prop === 'function') ? prop.apply(this, [item]) :*/ item[prop]
       grouped[key] = grouped[key] || []
@@ -68,11 +68,11 @@ if (!Array.prototype.groupBy) {
       grouped[key].push(obj)
       return grouped
     }, {})
-    let ret: any[] = []
+    const ret: any[] = []
     Object.keys(result).forEach(row => {
       // console.log(row)
-      let item: any = {}
-      let cat = typeof prop === 'function' ? 'key' : prop
+      const item: any = {}
+      const cat = typeof prop === 'function' ? 'key' : prop
       item[cat] = row
       item.group = result[row]
       ret.push(item)
@@ -86,8 +86,8 @@ if (!Array.prototype.aggregate) {
     // tslint:disable-line: typedef
     return this.map(row => {
       Object.keys(querys).forEach(query => {
-        let func: any = querys[query]
-        let data = row.group.map((group: any) => group[query])
+        const func: any = querys[query]
+        const data = row.group.map((group: any) => group[query])
         let value
         let name = ''
         if (typeof func === 'string') {
@@ -179,34 +179,34 @@ if (!Array.prototype.sum) {
 if (!Array.prototype.average) {
   Array.prototype.average = function(field) {
     // tslint:disable-line: typedef
-    let that = typeArg(field, this)
-    let count = that.length
-    let total = that.reduce((prev, current) => +current + prev, 0) // parseFloat
+    const that = typeArg(field, this)
+    const count = that.length
+    const total = that.reduce((prev, current) => +current + prev, 0) // parseFloat
     return total / count
   }
 }
 
 if (!Array.prototype.unique) {
   Array.prototype.unique = function(field?: any) {
-    let that = typeArg(field, this)
-    let o: any = {}
+    const that = typeArg(field, this)
+    const o: any = {}
     let i
-    let l = that.length
-    let r: any[] = []
+    const l = that.length
+    const r: any[] = []
     for (i = 0; i < l; i += 1) {
       o[JSON.stringify(that[i])] = that[i]
     }
-    Object.keys(o).forEach(i => {
-      r.push(o[i])
+    Object.keys(o).forEach(index => {
+      r.push(o[index])
     })
     return r
   }
 }
 
 function flatten(
-  list: Array<any>,
+  list: any[],
   depth: number,
-  mapperFn?: Function,
+  mapperFn?: ((value: any, index?: number, array?: any[]) => any),
   mapperCtx?: any
 ): any {
   if (depth === 0) {
@@ -233,7 +233,10 @@ if (!Array.prototype.flatten) {
 }
 
 if (!Array.prototype.flatMap) {
-  Array.prototype.flatMap = function(fn: Function, ctx: any) {
+  Array.prototype.flatMap = function(
+    fn: ((value: any, index?: number, array?: any[]) => any),
+    ctx: any
+  ) {
     // tslint:disable-line: typedef
     return flatten(this, 1, fn, ctx)
   }
@@ -266,12 +269,12 @@ if (!Array.prototype.includes) {
   Array.prototype.includes = function(searchElement /*, fromIndex*/) {
     // tslint:disable-line: typedef
     'use strict'
-    let O = Object(this)
-    let len = parseInt(O.length, 10) || 0
+    const O = Object(this)
+    const len = parseInt(O.length, 10) || 0
     if (len === 0) {
       return false
     }
-    let n = parseInt(arguments[1], 10) || 0
+    const n = parseInt(arguments[1], 10) || 0
     let k
     if (n >= 0) {
       k = n
@@ -306,9 +309,9 @@ if (!Array.prototype.find) {
     if (typeof predicate !== 'function') {
       throw new TypeError('predicate must be a function')
     }
-    let list = Object(this)
-    let length = list.length >>> 0
-    let thisArg = arguments[1]
+    const list = Object(this)
+    const length = list.length >>> 0
+    const thisArg = arguments[1]
     let value
 
     for (let i = 0; i < length; i++) {
@@ -332,9 +335,9 @@ if (!Array.prototype.findIndex) {
     if (typeof predicate !== 'function') {
       throw new TypeError('predicate must be a function')
     }
-    let list = Object(this)
-    let length = list.length >>> 0
-    let thisArg = arguments[1]
+    const list = Object(this)
+    const length = list.length >>> 0
+    const thisArg = arguments[1]
     let value
 
     for (let i = 0; i < length; i++) {
@@ -354,17 +357,17 @@ if (!Array.prototype.fill) {
     if (this == null) {
       throw new TypeError('this is null or not defined')
     }
-    let O = Object(this)
-    let len = O.length >>> 0
-    let start = arguments[1]
-    let relativeStart = start >> 0
+    const O = Object(this)
+    const len = O.length >>> 0
+    const start = arguments[1]
+    const relativeStart = start >> 0
     let k =
       relativeStart < 0
         ? Math.max(len + relativeStart, 0)
         : Math.min(relativeStart, len)
-    let end = arguments[2]
-    let relativeEnd = end === undefined ? len : end >> 0
-    let final =
+    const end = arguments[2]
+    const relativeEnd = end === undefined ? len : end >> 0
+    const final =
       relativeEnd < 0
         ? Math.max(len + relativeEnd, 0)
         : Math.min(relativeEnd, len)
@@ -397,11 +400,11 @@ if (typeof Object.assign !== 'function') {
         throw new TypeError('Cannot convert undefined or null to object')
       }
 
-      let output = Object(target)
+      const output = Object(target)
       for (let index = 1; index < arguments.length; index++) {
-        let source = arguments[index]
+        const source = arguments[index]
         if (source !== undefined && source !== null) {
-          for (let nextKey in source) {
+          for (const nextKey in source) {
             if (source.hasOwnProperty(nextKey)) {
               output[nextKey] = source[nextKey]
             }

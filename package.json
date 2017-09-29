@@ -1,8 +1,8 @@
 {
   "name": "js-plus",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Javascript utilities",
-  "main": "js-plus.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
