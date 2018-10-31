@@ -2,47 +2,36 @@
 
 type map<M> = ((value: M, index?: number, array?: M[]) => any[])
 
-interface Array<T> {
-  groupBy(prop: string, fields?: string | (() => void) | any): T[]
-  /*| ((value: T, index: number, array: T[]) => any[])*/
-  aggregate(querys: any): T[]
-  first(): T
-  last(): T
-  count(field?: (value: T, index: number, array: T[]) => any[]): number
-  min(field?: string | map<T>): number
-  max(field?: string | map<T>): number
-  sum(field?: string | map<T>): number
-  average(field?: string | map<T>): number
-  unique(): T[]
-  unique(field?: string | map<T>): string[]
-  by(field?: string | map<T>): any[]
-  flatten(depth?: number): T[]
-  flatMap<U>(
-    callbackfn: (value: T, index?: number, array?: T[]) => U,
-    thisArg?: any
-  ): U[]
-  take(numberOf?: number): T[]
-  includes(searchElement?: any): boolean
-  find(
-    callbackfn: (value: T, index: number, array: T[]) => boolean,
-    thisArg?: any
-  ): T
-  findIndex(
-    callbackfn: (value: T, index: number, array: T[]) => boolean,
-    thisArg?: any
-  ): number
-  fill(value: T, start?: number, end?: number): T[]
+declare global {
+  interface Array<T> {
+    groupBy(prop: string, fields?: string | (() => void) | any): T[]
+    /*| ((value: T, index: number, array: T[]) => any[])*/
+    aggregate(querys: any): T[]
+    first(): T
+    last(): T
+    count(field?: (value: T, index: number, array: T[]) => any[]): number
+    min(field?: string | map<T>): number
+    max(field?: string | map<T>): number
+    sum(field?: string | map<T>): number
+    average(field?: string | map<T>): number
+    unique(): T[]
+    unique(field?: string | map<T>): string[]
+    by(field?: string | map<T>): any[]
+    flatten(depth?: number): T[]
+    flatMap<U>(callbackfn: (value: T, index?: number, array?: T[]) => U, thisArg?: any): U[]
+    take(numberOf?: number): T[]
+    includes(searchElement?: any): boolean
+    find(callbackfn: (value: T, index: number, array: T[]) => boolean, thisArg?: any): T
+    findIndex(callbackfn: (value: T, index: number, array: T[]) => boolean, thisArg?: any): number
+    fill(value: T, start?: number, end?: number): T[]
+  }
 }
 
 if (!Array.prototype.groupBy) {
-  Array.prototype.groupBy = function(
-    prop: string,
-    fields?: string | (() => void) | any
-  ): any[] {
+  Array.prototype.groupBy = function(prop: string, fields?: string | (() => void) | any): any[] {
     let key
     const result = this.reduce((grouped: any, item: any) => {
-      key =
-        /*(typeof prop === 'function') ? prop.apply(this, [item]) :*/ item[prop]
+      key = /*(typeof prop === 'function') ? prop.apply(this, [item]) :*/ item[prop]
       grouped[key] = grouped[key] || []
       let obj: any
       switch (typeof fields) {
@@ -169,10 +158,7 @@ if (!Array.prototype.max) {
 
 if (!Array.prototype.sum) {
   Array.prototype.sum = function(field: any) {
-    return this.by(field).reduce(
-      (prev: number, current: number) => +current + prev,
-      0
-    ) // parseFloat
+    return this.by(field).reduce((prev: number, current: number) => +current + prev, 0) // parseFloat
   }
 }
 
@@ -328,9 +314,7 @@ if (!Array.prototype.findIndex) {
   Array.prototype.findIndex = function(predicate: any) {
     // tslint:disable-line: typedef
     if (this === null) {
-      throw new TypeError(
-        'Array.prototype.findIndex called on null or undefined'
-      )
+      throw new TypeError('Array.prototype.findIndex called on null or undefined')
     }
     if (typeof predicate !== 'function') {
       throw new TypeError('predicate must be a function')
@@ -361,16 +345,10 @@ if (!Array.prototype.fill) {
     const len = O.length >>> 0
     const start = arguments[1]
     const relativeStart = start >> 0
-    let k =
-      relativeStart < 0
-        ? Math.max(len + relativeStart, 0)
-        : Math.min(relativeStart, len)
+    let k = relativeStart < 0 ? Math.max(len + relativeStart, 0) : Math.min(relativeStart, len)
     const end = arguments[2]
     const relativeEnd = end === undefined ? len : end >> 0
-    const final =
-      relativeEnd < 0
-        ? Math.max(len + relativeEnd, 0)
-        : Math.min(relativeEnd, len)
+    const final = relativeEnd < 0 ? Math.max(len + relativeEnd, 0) : Math.min(relativeEnd, len)
     while (k < final) {
       O[k] = value
       k++
@@ -379,41 +357,41 @@ if (!Array.prototype.fill) {
   }
 }
 
-interface ObjectConstructor {
-  assign(target: any, ...sources: any[]): any
-  isString(value: any): boolean
-  isNumber(value: any): boolean
-  isBoolean(value: any): boolean
-  isObject(value: any): boolean
-  isArray(value: any): boolean
-  isNull(value: any): boolean
-  isUndefined(value: any): boolean
-  isFunction(value: any): boolean
+declare global {
+  interface ObjectConstructor {
+    assign(target: any, ...sources: any[]): any
+    isString(value: any): boolean
+    isNumber(value: any): boolean
+    isBoolean(value: any): boolean
+    isObject(value: any): boolean
+    isArray(value: any): boolean
+    isNull(value: any): boolean
+    isUndefined(value: any): boolean
+    isFunction(value: any): boolean
+  }
 }
 
 if (typeof Object.assign !== 'function') {
-  ;(function(): void {
-    Object.assign = function(target: any) {
-      // tslint:disable-line: typedef
-      'use strict'
-      if (target === undefined || target === null) {
-        throw new TypeError('Cannot convert undefined or null to object')
-      }
+  Object.assign = function(target: any) {
+    // tslint:disable-line: typedef
+    'use strict'
+    if (target === undefined || target === null) {
+      throw new TypeError('Cannot convert undefined or null to object')
+    }
 
-      const output = Object(target)
-      for (let index = 1; index < arguments.length; index++) {
-        const source = arguments[index]
-        if (source !== undefined && source !== null) {
-          for (const nextKey in source) {
-            if (source.hasOwnProperty(nextKey)) {
-              output[nextKey] = source[nextKey]
-            }
+    const output = Object(target)
+    for (let index = 1; index < arguments.length; index++) {
+      const source = arguments[index]
+      if (source !== undefined && source !== null) {
+        for (const nextKey in source) {
+          if (source.hasOwnProperty(nextKey)) {
+            output[nextKey] = source[nextKey]
           }
         }
       }
-      return output
     }
-  })()
+    return output
+  }
 }
 
 if (!Object.isString) {
@@ -482,15 +460,15 @@ if (!Number.isInteger) {
   Number.isInteger =
     Number.isInteger ||
     function(value: any): boolean {
-      return (
-        typeof value === 'number' &&
-        isFinite(value) &&
-        Math.floor(value) === value
-      )
+      return typeof value === 'number' && isFinite(value) && Math.floor(value) === value
     }
 }
 
-interface NumberConstructor {
-  isFinite(value: any): boolean
-  isInteger(value: any): boolean
+declare global {
+  interface NumberConstructor {
+    isFinite(value: any): boolean
+    isInteger(value: any): boolean
+  }
 }
+
+export default Array

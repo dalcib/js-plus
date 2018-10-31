@@ -1,11 +1,11 @@
 "use strict";
 /* tslint:disable:no-bitwise */
+Object.defineProperty(exports, "__esModule", { value: true });
 if (!Array.prototype.groupBy) {
     Array.prototype.groupBy = function (prop, fields) {
         var key;
         var result = this.reduce(function (grouped, item) {
-            key =
-                /*(typeof prop === 'function') ? prop.apply(this, [item]) :*/ item[prop];
+            key = /*(typeof prop === 'function') ? prop.apply(this, [item]) :*/ item[prop];
             grouped[key] = grouped[key] || [];
             var obj;
             switch (typeof fields) {
@@ -124,7 +124,6 @@ if (!Array.prototype.max) {
 }
 if (!Array.prototype.sum) {
     Array.prototype.sum = function (field) {
-        // tslint:disable-line: typedef
         return this.by(field).reduce(function (prev, current) { return +current + prev; }, 0); // parseFloat
     };
 }
@@ -139,7 +138,6 @@ if (!Array.prototype.average) {
 }
 if (!Array.prototype.unique) {
     Array.prototype.unique = function (field) {
-        // tslint:disable-line: typedef
         var that = typeArg(field, this);
         var o = {};
         var i;
@@ -148,8 +146,8 @@ if (!Array.prototype.unique) {
         for (i = 0; i < l; i += 1) {
             o[JSON.stringify(that[i])] = that[i];
         }
-        Object.keys(o).forEach(function (i) {
-            r.push(o[i]);
+        Object.keys(o).forEach(function (index) {
+            r.push(o[index]);
         });
         return r;
     };
@@ -293,14 +291,10 @@ if (!Array.prototype.fill) {
         var len = O.length >>> 0;
         var start = arguments[1];
         var relativeStart = start >> 0;
-        var k = relativeStart < 0
-            ? Math.max(len + relativeStart, 0)
-            : Math.min(relativeStart, len);
+        var k = relativeStart < 0 ? Math.max(len + relativeStart, 0) : Math.min(relativeStart, len);
         var end = arguments[2];
         var relativeEnd = end === undefined ? len : end >> 0;
-        var final = relativeEnd < 0
-            ? Math.max(len + relativeEnd, 0)
-            : Math.min(relativeEnd, len);
+        var final = relativeEnd < 0 ? Math.max(len + relativeEnd, 0) : Math.min(relativeEnd, len);
         while (k < final) {
             O[k] = value;
             k++;
@@ -309,28 +303,25 @@ if (!Array.prototype.fill) {
     };
 }
 if (typeof Object.assign !== 'function') {
-    ;
-    (function () {
-        Object.assign = function (target) {
-            // tslint:disable-line: typedef
-            'use strict';
-            if (target === undefined || target === null) {
-                throw new TypeError('Cannot convert undefined or null to object');
-            }
-            var output = Object(target);
-            for (var index = 1; index < arguments.length; index++) {
-                var source = arguments[index];
-                if (source !== undefined && source !== null) {
-                    for (var nextKey in source) {
-                        if (source.hasOwnProperty(nextKey)) {
-                            output[nextKey] = source[nextKey];
-                        }
+    Object.assign = function (target) {
+        // tslint:disable-line: typedef
+        'use strict';
+        if (target === undefined || target === null) {
+            throw new TypeError('Cannot convert undefined or null to object');
+        }
+        var output = Object(target);
+        for (var index = 1; index < arguments.length; index++) {
+            var source = arguments[index];
+            if (source !== undefined && source !== null) {
+                for (var nextKey in source) {
+                    if (source.hasOwnProperty(nextKey)) {
+                        output[nextKey] = source[nextKey];
                     }
                 }
             }
-            return output;
-        };
-    })();
+        }
+        return output;
+    };
 }
 if (!Object.isString) {
     Object.isString = function isString(value) {
@@ -388,8 +379,7 @@ if (!Number.isInteger) {
     Number.isInteger =
         Number.isInteger ||
             function (value) {
-                return (typeof value === 'number' &&
-                    isFinite(value) &&
-                    Math.floor(value) === value);
+                return typeof value === 'number' && isFinite(value) && Math.floor(value) === value;
             };
 }
+exports.default = Array;

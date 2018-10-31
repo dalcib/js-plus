@@ -1,6 +1,6 @@
 {
   "name": "js-plus",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Javascript utilities",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,11 @@
     "type": "git",
     "url": "git+https://github.com/dalcib/js-plus.git"
   },
-  "keywords": ["javascript", "prototype", "array"],
+  "keywords": [
+    "javascript",
+    "prototype",
+    "array"
+  ],
   "author": "Dalci de Jesus Bagolin",
   "license": "MIT",
   "bugs": {
