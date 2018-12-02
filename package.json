@@ -1,6 +1,6 @@
 {
   "name": "js-plus",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Javascript utilities",
   "main": "index.js",
   "scripts": {
@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/dalcib/js-plus/issues"
   },
-  "homepage": "https://github.com/dalcib/js-plus#readme"
+  "homepage": "https://github.com/dalcib/js-plus#readme",
+  "dependencies": {
+    "tslint-config-prettier": "^1.17.0"
+  }
 }

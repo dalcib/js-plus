@@ -1,12 +1,14 @@
 /* tslint:disable:no-bitwise */
 
 type map<M> = ((value: M, index?: number, array?: M[]) => any[])
+type Field = string | ((value: any, index?: number | undefined, array?: any[] | undefined) => any[]) | undefined
+type Querys = [{[field:string]: ()=> void | string}]
 
 declare global {
   interface Array<T> {
     groupBy(prop: string, fields?: string | (() => void) | any): T[]
     /*| ((value: T, index: number, array: T[]) => any[])*/
-    aggregate(querys: any): T[]
+    aggregate(Querys: any): T[]
     first(): T
     last(): T
     count(field?: (value: T, index: number, array: T[]) => any[]): number
@@ -18,11 +20,11 @@ declare global {
     unique(field?: string | map<T>): string[]
     by(field?: string | map<T>): any[]
     flatten(depth?: number): T[]
-    flatMap<U>(callbackfn: (value: T, index?: number, array?: T[]) => U, thisArg?: any): U[]
+    //flatMap<U>(callbackfn: (value: T, index?: number, array?: T[]) => U, thisArg?: any): U[]
     take(numberOf?: number): T[]
-    includes(searchElement?: any): boolean
-    find(callbackfn: (value: T, index: number, array: T[]) => boolean, thisArg?: any): T
-    findIndex(callbackfn: (value: T, index: number, array: T[]) => boolean, thisArg?: any): number
+    ///includes(searchElement?: any): boolean
+    //find(callbackfn: (value: T, index: number, array: T[]) => boolean, thisArg?: any): T
+    //findIndex(callbackfn: (value: T, index: number, array: T[]) => boolean, thisArg?: any): number
     fill(value: T, start?: number, end?: number): T[]
   }
 }
@@ -71,8 +73,7 @@ if (!Array.prototype.groupBy) {
 }
 
 if (!Array.prototype.aggregate) {
-  Array.prototype.aggregate = function(querys) {
-    // tslint:disable-line: typedef
+  Array.prototype.aggregate = function(querys: any) {
     return this.map(row => {
       Object.keys(querys).forEach(query => {
         const func: any = querys[query]
@@ -96,34 +97,21 @@ if (!Array.prototype.aggregate) {
 
 if (!Array.prototype.first) {
   Array.prototype.first = function() {
-    // tslint:disable-line: typedef
     return this[0]
   }
 }
 
 if (!Array.prototype.last) {
   Array.prototype.last = function() {
-    // tslint:disable-line: typedef
     return this[this.length - 1]
   }
 }
 
 if (!Array.prototype.count) {
   Array.prototype.count = function() {
-    // tslint:disable-line: typedef
     return this.length
   }
 
-  /*Array.prototype.count = function (predicate) {
-    if (Object.isObject(this[0]) && Object.isObject(this[this.length-1])) {
-        return {count: this.length}
-    }
-    return this.reduce( (total, item) => {
-        let propertie = predicate ? item[predicate] : item
-        total[propertie] = (total[propertie] || 0) + 1
-        return total
-    }, {})
-  }*/
 }
 
 function typeArg(arg: any, arr: any[]): any[] {
@@ -143,15 +131,13 @@ function typeArg(arg: any, arr: any[]): any[] {
 }
 
 if (!Array.prototype.min) {
-  Array.prototype.min = function(field) {
-    // tslint:disable-line: typedef
+  Array.prototype.min = function (field: Field ): number {
     return Math.min.apply(null, this.by(field))
   }
 }
 
 if (!Array.prototype.max) {
-  Array.prototype.max = function(field) {
-    // tslint:disable-line: typedef
+  Array.prototype.max = function(field: Field): number {
     return Math.max.apply(null, this.by(field))
   }
 }
@@ -163,8 +149,7 @@ if (!Array.prototype.sum) {
 }
 
 if (!Array.prototype.average) {
-  Array.prototype.average = function(field) {
-    // tslint:disable-line: typedef
+  Array.prototype.average = function(field: Field): number {
     const that = typeArg(field, this)
     const count = that.length
     const total = that.reduce((prev, current) => +current + prev, 0) // parseFloat
@@ -192,7 +177,7 @@ if (!Array.prototype.unique) {
 function flatten(
   list: any[],
   depth: number,
-  mapperFn?: ((value: any, index?: number, array?: any[]) => any),
+  mapperFn?: ((value: any, index: number, array?: any[]) => any),
   mapperCtx?: any
 ): any {
   if (depth === 0) {
@@ -212,32 +197,26 @@ function flatten(
 }
 
 if (!Array.prototype.flatten) {
-  Array.prototype.flatten = function(depth = Infinity) {
-    // tslint:disable-line: typedef
+  Array.prototype.flatten = function(depth: number | undefined = Infinity) {
     return flatten(this, depth)
   }
 }
 
 if (!Array.prototype.flatMap) {
-  Array.prototype.flatMap = function(
-    fn: ((value: any, index?: number, array?: any[]) => any),
-    ctx: any
-  ) {
-    // tslint:disable-line: typedef
-    return flatten(this, 1, fn, ctx)
+  Array.prototype.flatMap = function<U, This > (callback: (value: any, index: number, array: any[]) => U | ReadonlyArray < U >, thisArg ?: This | undefined): U[] {
+    // @ts-ignore
+    return flatten(this, 1, callback, thisArg)
   }
 }
 
 if (!Array.prototype.by) {
-  Array.prototype.by = function(field) {
-    // tslint:disable-line: typedef
+  Array.prototype.by = function(field: Field) {
     return typeArg(field, this)
   }
 }
 
 if (!Array.prototype.take) {
   Array.prototype.take = function(numberOf: number) {
-    // tslint:disable-line: typedef
     let begin
     let end
     if (numberOf >= 0) {
@@ -252,8 +231,7 @@ if (!Array.prototype.take) {
 }
 
 if (!Array.prototype.includes) {
-  Array.prototype.includes = function(searchElement /*, fromIndex*/) {
-    // tslint:disable-line: typedef
+  Array.prototype.includes = function (searchElement: any, fromIndex?: number | undefined): boolean {
     'use strict'
     const O = Object(this)
     const len = parseInt(O.length, 10) || 0
@@ -288,7 +266,6 @@ if (!Array.prototype.includes) {
 
 if (!Array.prototype.find) {
   Array.prototype.find = function(predicate: any) {
-    // tslint:disable-line: typedef
     if (this === null) {
       throw new TypeError('Array.prototype.find called on null or undefined')
     }
@@ -312,7 +289,6 @@ if (!Array.prototype.find) {
 
 if (!Array.prototype.findIndex) {
   Array.prototype.findIndex = function(predicate: any) {
-    // tslint:disable-line: typedef
     if (this === null) {
       throw new TypeError('Array.prototype.findIndex called on null or undefined')
     }
@@ -336,8 +312,6 @@ if (!Array.prototype.findIndex) {
 
 if (!Array.prototype.fill) {
   Array.prototype.fill = function(value: any) {
-    // tslint:disable-line: typedef
-
     if (this == null) {
       throw new TypeError('this is null or not defined')
     }
@@ -373,7 +347,6 @@ declare global {
 
 if (typeof Object.assign !== 'function') {
   Object.assign = function(target: any) {
-    // tslint:disable-line: typedef
     'use strict'
     if (target === undefined || target === null) {
       throw new TypeError('Cannot convert undefined or null to object')
