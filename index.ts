@@ -1,14 +1,19 @@
 /* tslint:disable:no-bitwise */
 
 type map<M> = ((value: M, index?: number, array?: M[]) => any[])
-type Field = string | ((value: any, index?: number | undefined, array?: any[] | undefined) => any[]) | undefined
-type Querys = [{[field:string]: ()=> void | string}]
+type Field =
+  | string
+  | ((value: any, index?: number | undefined, array?: any[] | undefined) => any[])
+  | undefined
+type StringOrFunction = string | (() => void)
+type Query = { [key: string /* in keyof T */]: StringOrFunction }
+type Group = Array<{ P: string; group: any[]; [key: string]: any }>
 
 declare global {
   interface Array<T> {
-    groupBy(prop: string, fields?: string | (() => void) | any): T[]
+    groupBy<P>(prop: keyof T): Array<{ P: string; group: T[] }>
     /*| ((value: T, index: number, array: T[]) => any[])*/
-    aggregate(Querys: any): T[]
+    aggregate(querys: Query): T[]
     first(): T
     last(): T
     count(field?: (value: T, index: number, array: T[]) => any[]): number
@@ -18,53 +23,34 @@ declare global {
     average(field?: string | map<T>): number
     unique(): T[]
     unique(field?: string | map<T>): string[]
-    by(field?: string | map<T>): any[]
-    flatten(depth?: number): T[]
-    //flatMap<U>(callbackfn: (value: T, index?: number, array?: T[]) => U, thisArg?: any): U[]
+    by(field?: keyof T | map<T>): any[]
     take(numberOf?: number): T[]
+    fill(value: T, start?: number, end?: number): T[]
+    diff(values: T[]): T[]
+    filterNonUnique(): T[]
+    similarity(values: T[]): T[]
+    //flat(depth?: number): T[]
+    //flatMap<U>(callbackfn: (value: T, index?: number, array?: T[]) => U, thisArg?: any): U[]
     ///includes(searchElement?: any): boolean
     //find(callbackfn: (value: T, index: number, array: T[]) => boolean, thisArg?: any): T
     //findIndex(callbackfn: (value: T, index: number, array: T[]) => boolean, thisArg?: any): number
-    fill(value: T, start?: number, end?: number): T[]
   }
 }
 
 if (!Array.prototype.groupBy) {
-  Array.prototype.groupBy = function(prop: string, fields?: string | (() => void) | any): any[] {
+  Array.prototype.groupBy = function(prop: string): any[] {
     let key
     const result = this.reduce((grouped: any, item: any) => {
-      key = /*(typeof prop === 'function') ? prop.apply(this, [item]) :*/ item[prop]
+      key = item[prop] //(typeof prop === 'function') ? prop.apply(this, [item]) : item[prop]
       grouped[key] = grouped[key] || []
-      let obj: any
-      switch (typeof fields) {
-        case 'function':
-          obj = fields(item)
-          break
-        case 'string':
-          obj = {}
-          obj[fields] = item[fields]
-          break
-        case 'object':
-          if (Array.isArray(fields)) {
-            obj = fields.reduce((prev, curr) => {
-              prev[curr] = item[curr]
-              return prev
-            }, {})
-          }
-          break
-        default:
-          obj = item
-          break
-      }
-      grouped[key].push(obj)
+      grouped[key].push(item)
       return grouped
     }, {})
     const ret: any[] = []
     Object.keys(result).forEach(row => {
-      // console.log(row)
       const item: any = {}
-      const cat = typeof prop === 'function' ? 'key' : prop
-      item[cat] = row
+      //const cat = typeof prop === 'function' ? 'key' : prop
+      item[prop] = row
       item.group = result[row]
       ret.push(item)
     })
@@ -73,10 +59,10 @@ if (!Array.prototype.groupBy) {
 }
 
 if (!Array.prototype.aggregate) {
-  Array.prototype.aggregate = function(querys: any) {
+  Array.prototype.aggregate = function(this: Group, querys: Query): any[] {
     return this.map(row => {
       Object.keys(querys).forEach(query => {
-        const func: any = querys[query]
+        const func: StringOrFunction = querys[query]
         const data = row.group.map((group: any) => group[query])
         let value
         let name = ''
@@ -86,12 +72,30 @@ if (!Array.prototype.aggregate) {
         } else {
           value = func.call(data)
         }
-        row[name + '_' + query] = value
+        row[name + query.charAt(0).toUpperCase() + query.slice(1)] = value
       })
-      // console.log('row:', row.category, row)
       delete row.group
       return row
     })
+  }
+}
+
+if (!Array.prototype.diff) {
+  Array.prototype.diff = function(values: any[]) {
+    const s = new Set(values)
+    return this.filter(x => !s.has(x))
+  }
+}
+
+if (!Array.prototype.filterNonUnique) {
+  Array.prototype.filterNonUnique = function() {
+    return this.filter(i => this.indexOf(i) !== this.lastIndexOf(i))
+  }
+}
+
+if (!Array.prototype.similarity) {
+  Array.prototype.similarity = function(values: any[]) {
+    return this.filter(v => values.includes(v))
   }
 }
 
@@ -111,10 +115,9 @@ if (!Array.prototype.count) {
   Array.prototype.count = function() {
     return this.length
   }
-
 }
 
-function typeArg(arg: any, arr: any[]): any[] {
+/* function typeArg(arg: any, arr: any[]): any[] {
   let that
   switch (typeof arg) {
     case 'function':
@@ -128,17 +131,19 @@ function typeArg(arg: any, arr: any[]): any[] {
       break
   }
   return that
-}
+} */
 
 if (!Array.prototype.min) {
-  Array.prototype.min = function (field: Field ): number {
-    return Math.min.apply(null, this.by(field))
+  Array.prototype.min = function(field: Field): number {
+    return Math.min(...(this.by(field) as number[]))
+    //return Math.min.apply(null, this.by(field) as number[])
   }
 }
 
 if (!Array.prototype.max) {
   Array.prototype.max = function(field: Field): number {
-    return Math.max.apply(null, this.by(field))
+    return Math.max(...(this.by(field) as number[]))
+    //return Math.max.apply(null, this.by(field) as number[])
   }
 }
 
@@ -150,16 +155,15 @@ if (!Array.prototype.sum) {
 
 if (!Array.prototype.average) {
   Array.prototype.average = function(field: Field): number {
-    const that = typeArg(field, this)
-    const count = that.length
-    const total = that.reduce((prev, current) => +current + prev, 0) // parseFloat
-    return total / count
+    const that = this.by(field)
+    return that.reduce((prev, current) => +current + prev, 0) / that.length
   }
 }
 
 if (!Array.prototype.unique) {
   Array.prototype.unique = function(field?: any) {
-    const that = typeArg(field, this)
+    // [...new Set(this)]
+    const that = this.by(field)
     const o: any = {}
     let i
     const l = that.length
@@ -174,10 +178,11 @@ if (!Array.prototype.unique) {
   }
 }
 
-function flatten(
+function flatten<U>(
   list: any[],
   depth: number,
-  mapperFn?: ((value: any, index: number, array?: any[]) => any),
+  // mapperFn?: ((value: any, index: number, array?: any[]) => any[] | undefined),
+  mapperFn?: (value: any, index: number, array: any[]) => U | ReadonlyArray<U>,
   mapperCtx?: any
 ): any {
   if (depth === 0) {
@@ -196,22 +201,25 @@ function flatten(
   }, [])
 }
 
-if (!Array.prototype.flatten) {
-  Array.prototype.flatten = function(depth: number | undefined = Infinity) {
+if (!Array.prototype.flat) {
+  Array.prototype.flat = function(depth: number | undefined = Infinity) {
     return flatten(this, depth)
   }
 }
 
 if (!Array.prototype.flatMap) {
-  Array.prototype.flatMap = function<U, This > (callback: (value: any, index: number, array: any[]) => U | ReadonlyArray < U >, thisArg ?: This | undefined): U[] {
-    // @ts-ignore
+  Array.prototype.flatMap = function<U, This>(
+    callback: (value: any, index: number, array: any[]) => U | ReadonlyArray<U>,
+    thisArg?: This | undefined
+  ): U[] {
     return flatten(this, 1, callback, thisArg)
   }
 }
 
 if (!Array.prototype.by) {
   Array.prototype.by = function(field: Field) {
-    return typeArg(field, this)
+    return field ? this.map(typeof field === 'function' ? field : val => val[field]) : this
+    //return typeArg(field, this)
   }
 }
 
@@ -231,31 +239,27 @@ if (!Array.prototype.take) {
 }
 
 if (!Array.prototype.includes) {
-  Array.prototype.includes = function (searchElement: any, fromIndex?: number | undefined): boolean {
-    'use strict'
-    const O = Object(this)
-    const len = parseInt(O.length, 10) || 0
+  Array.prototype.includes = function(
+    valueToFind: any,
+    fromIndex: number | undefined = 0
+  ): boolean {
+    if (this == null) {
+      throw new TypeError('"this" is null or not defined')
+    }
+    const o: any[] = Object(this)
+    const len = o.length >>> 0
     if (len === 0) {
       return false
     }
-    const n = parseInt(arguments[1], 10) || 0
-    let k
-    if (n >= 0) {
-      k = n
-    } else {
-      k = len + n
-      if (k < 0) {
-        k = 0
-      }
+    const n = fromIndex | 0
+    let k = Math.max(n >= 0 ? n : len - Math.abs(n), 0)
+
+    function sameValueZero(x: any, y: any) {
+      return x === y || (typeof x === 'number' && typeof y === 'number' && isNaN(x) && isNaN(y))
     }
-    let currentElement
+
     while (k < len) {
-      currentElement = O[k]
-      if (
-        searchElement === currentElement ||
-        (searchElement !== searchElement && currentElement !== currentElement)
-      ) {
-        // .. NaN !== NaN
+      if (sameValueZero(o[k], valueToFind)) {
         return true
       }
       k++
@@ -445,3 +449,44 @@ declare global {
 }
 
 export default Array
+
+export const JSONtoCSV = (arr: any[], columns: string[] = Object.keys(arr[0]), delimiter = ',') =>
+  [
+    columns.join(delimiter),
+    ...arr.map(obj =>
+      columns.reduce(
+        (acc, key) => `${acc}${!acc.length ? '' : delimiter}"${!obj[key] ? '' : obj[key]}"`,
+        ''
+      )
+    ),
+  ].join('\n')
+
+export const standardDeviation = (arr: number[], usePopulation = false) => {
+  const mean = arr.reduce((acc, val) => acc + val, 0) / arr.length
+  return Math.sqrt(
+    arr
+      .reduce((acc: number[], val) => acc.concat((val - mean) ** 2), [])
+      .reduce((acc, val) => acc + val, 0) /
+      (arr.length - (usePopulation ? 0 : 1))
+  )
+}
+
+export const get = (from: object, selector: string) =>
+  selector
+    .replace(/\[([^\[\]]*)\]/g, '.$1.')
+    .split('.')
+    .filter(t => t !== '')
+    .reduce((prev: { [key: string]: any }, cur) => prev && prev[cur], from)
+
+export const flattenObject = (obj: { [key: string]: any }, prefix = '') =>
+  Object.keys(obj).reduce((acc: { [key: string]: any }, k) => {
+    const pre = prefix.length ? prefix + '.' : ''
+    if (typeof obj[k] === 'object') {
+      Object.assign(acc, flattenObject(obj[k], pre + k))
+    } else {
+      acc[pre + k] = obj[k]
+    }
+    return acc
+  }, {})
+
+// https://github.com/30-seconds/30-seconds-of-code

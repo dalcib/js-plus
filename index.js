@@ -2,41 +2,19 @@
 /* tslint:disable:no-bitwise */
 Object.defineProperty(exports, "__esModule", { value: true });
 if (!Array.prototype.groupBy) {
-    Array.prototype.groupBy = function (prop, fields) {
+    Array.prototype.groupBy = function (prop) {
         var key;
         var result = this.reduce(function (grouped, item) {
-            key = /*(typeof prop === 'function') ? prop.apply(this, [item]) :*/ item[prop];
+            key = item[prop]; //(typeof prop === 'function') ? prop.apply(this, [item]) : item[prop]
             grouped[key] = grouped[key] || [];
-            var obj;
-            switch (typeof fields) {
-                case 'function':
-                    obj = fields(item);
-                    break;
-                case 'string':
-                    obj = {};
-                    obj[fields] = item[fields];
-                    break;
-                case 'object':
-                    if (Array.isArray(fields)) {
-                        obj = fields.reduce(function (prev, curr) {
-                            prev[curr] = item[curr];
-                            return prev;
-                        }, {});
-                    }
-                    break;
-                default:
-                    obj = item;
-                    break;
-            }
-            grouped[key].push(obj);
+            grouped[key].push(item);
             return grouped;
         }, {});
         var ret = [];
         Object.keys(result).forEach(function (row) {
-            // console.log(row)
             var item = {};
-            var cat = typeof prop === 'function' ? 'key' : prop;
-            item[cat] = row;
+            //const cat = typeof prop === 'function' ? 'key' : prop
+            item[prop] = row;
             item.group = result[row];
             ret.push(item);
         });
@@ -58,12 +36,28 @@ if (!Array.prototype.aggregate) {
                 else {
                     value = func.call(data);
                 }
-                row[name + '_' + query] = value;
+                row[name + query.charAt(0).toUpperCase() + query.slice(1)] = value;
             });
-            // console.log('row:', row.category, row)
             delete row.group;
             return row;
         });
+    };
+}
+if (!Array.prototype.diff) {
+    Array.prototype.diff = function (values) {
+        var s = new Set(values);
+        return this.filter(function (x) { return !s.has(x); });
+    };
+}
+if (!Array.prototype.filterNonUnique) {
+    Array.prototype.filterNonUnique = function () {
+        var _this = this;
+        return this.filter(function (i) { return _this.indexOf(i) !== _this.lastIndexOf(i); });
+    };
+}
+if (!Array.prototype.similarity) {
+    Array.prototype.similarity = function (values) {
+        return this.filter(function (v) { return values.includes(v); });
     };
 }
 if (!Array.prototype.first) {
@@ -81,29 +75,31 @@ if (!Array.prototype.count) {
         return this.length;
     };
 }
-function typeArg(arg, arr) {
-    var that;
-    switch (typeof arg) {
-        case 'function':
-            that = arr.map(arg);
-            break;
-        case 'string':
-            that = arr.map(function (o) { return o[arg]; });
-            break;
-        default:
-            that = arr;
-            break;
-    }
-    return that;
-}
+/* function typeArg(arg: any, arr: any[]): any[] {
+  let that
+  switch (typeof arg) {
+    case 'function':
+      that = arr.map(arg)
+      break
+    case 'string':
+      that = arr.map(o => o[arg])
+      break
+    default:
+      that = arr
+      break
+  }
+  return that
+} */
 if (!Array.prototype.min) {
     Array.prototype.min = function (field) {
-        return Math.min.apply(null, this.by(field));
+        return Math.min.apply(Math, this.by(field));
+        //return Math.min.apply(null, this.by(field) as number[])
     };
 }
 if (!Array.prototype.max) {
     Array.prototype.max = function (field) {
-        return Math.max.apply(null, this.by(field));
+        return Math.max.apply(Math, this.by(field));
+        //return Math.max.apply(null, this.by(field) as number[])
     };
 }
 if (!Array.prototype.sum) {
@@ -113,15 +109,14 @@ if (!Array.prototype.sum) {
 }
 if (!Array.prototype.average) {
     Array.prototype.average = function (field) {
-        var that = typeArg(field, this);
-        var count = that.length;
-        var total = that.reduce(function (prev, current) { return +current + prev; }, 0); // parseFloat
-        return total / count;
+        var that = this.by(field);
+        return that.reduce(function (prev, current) { return +current + prev; }, 0) / that.length;
     };
 }
 if (!Array.prototype.unique) {
     Array.prototype.unique = function (field) {
-        var that = typeArg(field, this);
+        // [...new Set(this)]
+        var that = this.by(field);
         var o = {};
         var i;
         var l = that.length;
@@ -135,7 +130,9 @@ if (!Array.prototype.unique) {
         return r;
     };
 }
-function flatten(list, depth, mapperFn, mapperCtx) {
+function flatten(list, depth, 
+// mapperFn?: ((value: any, index: number, array?: any[]) => any[] | undefined),
+mapperFn, mapperCtx) {
     if (depth === 0) {
         return list;
     }
@@ -152,21 +149,21 @@ function flatten(list, depth, mapperFn, mapperCtx) {
         return accumulator;
     }, []);
 }
-if (!Array.prototype.flatten) {
-    Array.prototype.flatten = function (depth) {
+if (!Array.prototype.flat) {
+    Array.prototype.flat = function (depth) {
         if (depth === void 0) { depth = Infinity; }
         return flatten(this, depth);
     };
 }
 if (!Array.prototype.flatMap) {
     Array.prototype.flatMap = function (callback, thisArg) {
-        // @ts-ignore
         return flatten(this, 1, callback, thisArg);
     };
 }
 if (!Array.prototype.by) {
     Array.prototype.by = function (field) {
-        return typeArg(field, this);
+        return field ? this.map(typeof field === 'function' ? field : function (val) { return val[field]; }) : this;
+        //return typeArg(field, this)
     };
 }
 if (!Array.prototype.take) {
@@ -185,30 +182,23 @@ if (!Array.prototype.take) {
     };
 }
 if (!Array.prototype.includes) {
-    Array.prototype.includes = function (searchElement, fromIndex) {
-        'use strict';
-        var O = Object(this);
-        var len = parseInt(O.length, 10) || 0;
+    Array.prototype.includes = function (valueToFind, fromIndex) {
+        if (fromIndex === void 0) { fromIndex = 0; }
+        if (this == null) {
+            throw new TypeError('"this" is null or not defined');
+        }
+        var o = Object(this);
+        var len = o.length >>> 0;
         if (len === 0) {
             return false;
         }
-        var n = parseInt(arguments[1], 10) || 0;
-        var k;
-        if (n >= 0) {
-            k = n;
+        var n = fromIndex | 0;
+        var k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+        function sameValueZero(x, y) {
+            return x === y || (typeof x === 'number' && typeof y === 'number' && isNaN(x) && isNaN(y));
         }
-        else {
-            k = len + n;
-            if (k < 0) {
-                k = 0;
-            }
-        }
-        var currentElement;
         while (k < len) {
-            currentElement = O[k];
-            if (searchElement === currentElement ||
-                (searchElement !== searchElement && currentElement !== currentElement)) {
-                // .. NaN !== NaN
+            if (sameValueZero(o[k], valueToFind)) {
                 return true;
             }
             k++;
@@ -358,3 +348,41 @@ if (!Number.isInteger) {
             };
 }
 exports.default = Array;
+exports.JSONtoCSV = function (arr, columns, delimiter) {
+    if (columns === void 0) { columns = Object.keys(arr[0]); }
+    if (delimiter === void 0) { delimiter = ','; }
+    return [
+        columns.join(delimiter)
+    ].concat(arr.map(function (obj) {
+        return columns.reduce(function (acc, key) { return "" + acc + (!acc.length ? '' : delimiter) + "\"" + (!obj[key] ? '' : obj[key]) + "\""; }, '');
+    })).join('\n');
+};
+exports.standardDeviation = function (arr, usePopulation) {
+    if (usePopulation === void 0) { usePopulation = false; }
+    var mean = arr.reduce(function (acc, val) { return acc + val; }, 0) / arr.length;
+    return Math.sqrt(arr
+        .reduce(function (acc, val) { return acc.concat(Math.pow((val - mean), 2)); }, [])
+        .reduce(function (acc, val) { return acc + val; }, 0) /
+        (arr.length - (usePopulation ? 0 : 1)));
+};
+exports.get = function (from, selector) {
+    return selector
+        .replace(/\[([^\[\]]*)\]/g, '.$1.')
+        .split('.')
+        .filter(function (t) { return t !== ''; })
+        .reduce(function (prev, cur) { return prev && prev[cur]; }, from);
+};
+exports.flattenObject = function (obj, prefix) {
+    if (prefix === void 0) { prefix = ''; }
+    return Object.keys(obj).reduce(function (acc, k) {
+        var pre = prefix.length ? prefix + '.' : '';
+        if (typeof obj[k] === 'object') {
+            Object.assign(acc, exports.flattenObject(obj[k], pre + k));
+        }
+        else {
+            acc[pre + k] = obj[k];
+        }
+        return acc;
+    }, {});
+};
+// https://github.com/30-seconds/30-seconds-of-code

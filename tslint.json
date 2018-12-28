@@ -17,6 +17,7 @@
     "ordered-imports": false,
     "switch-default": true,
     "typedef": [true, "parameter", "property-declaration"],
-    "only-arrow-functions": false
+    "only-arrow-functions": false,
+    "interface-over-type-literal": false
   }
 }
